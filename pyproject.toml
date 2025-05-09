@@ -48,8 +48,12 @@ Homepage = "https://github.com/Salamek/sh3d.py"
 [tool.setuptools.dynamic]
 version = {attr = "sh3d.__version__"}
 
-[tool.setuptools]
-packages = ["sh3d"]
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["tests*", "examples*"]
+
+[tool.setuptools.package-data]
+"sh3d" = ["resources/*"]
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = [
