@@ -53,7 +53,7 @@ where = ["."]
 exclude = ["tests*", "examples*"]
 
 [tool.setuptools.package-data]
-"sh3d" = ["resources/*"]
+"sh3d" = ["resources/**/*"]
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = [
