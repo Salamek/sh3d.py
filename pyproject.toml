@@ -45,7 +45,7 @@ email = "adam.schubert@sg1-game.net"
 
 
 [project.urls]
-Homepage = "https://github.com/Salamek/sh3dsvg"
+Homepage = "https://github.com/Salamek/sh3d.py"
 
 [tool.setuptools.dynamic]
 version = {attr = "sh3d.__version__"}

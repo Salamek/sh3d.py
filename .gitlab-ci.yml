@@ -4,9 +4,8 @@ stages:
 repoupdate:
   stage: deploy
   before_script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - apt-get update -y
-    - apt-get install twine python3-setuptools python3-build python3-venv -y
+    - apt update --yes
+    - apt install twine python3-setuptools python3-build python3-venv --yes
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
