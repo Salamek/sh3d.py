@@ -1,4 +1,6 @@
 import pytest
+from importlib.resources import files
+
 
 from pathlib import Path
 
@@ -10,5 +12,4 @@ def sh3d_path() -> Path:
 
 @pytest.fixture(scope="module")  # type: ignore
 def resources_path() -> Path:
-    self_dir = Path(__file__).resolve().parent
-    return self_dir.joinpath('../sh3d/resources')
+    return Path(str(files("sh3d").joinpath("resources")))

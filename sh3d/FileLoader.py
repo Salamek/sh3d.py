@@ -1,4 +1,5 @@
 import enum
+from importlib.resources import files
 from pathlib import Path
 from types import TracebackType
 from typing import Optional,  Union, Type
@@ -30,8 +31,7 @@ class FileLoader:
 
         if not resources_path:
             # Load package provided resources
-            self_dir = Path(__file__).resolve().parent
-            resources_path = self_dir.joinpath('resources')
+            resources_path = Path(str(files("sh3d").joinpath("resources")))
 
         self.asset_manager = AssetManager(resources_path)
         self.zip_file = zipfile.ZipFile(sh3d_path, 'r')  # pylint: disable=consider-using-with
