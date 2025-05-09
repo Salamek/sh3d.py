@@ -4,6 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = "sh3d.py"
+license = "LGPL-3.0-or-later"
 dynamic = ["version"]
 requires-python = ">= 3.11"
 description = "Sweet home 3D file format implementation in python"
@@ -30,16 +31,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
+dev = [
     "tox"
 ]
 
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
-
-[project.license]
-text = "PROPRIETARY"
 
 [[project.authors]]
 name = "Adam Schubert"
