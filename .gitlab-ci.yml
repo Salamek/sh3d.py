@@ -6,13 +6,10 @@ repoupdate:
   before_script:
     - apt update --yes
     - apt install twine python3-setuptools python3-build python3-venv --yes
-    - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
-    - mkdir -p ~/.ssh
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - python3 -m build
-    - twine upload dist/*
+    - python3 -m venv venv
+    - ./venv/bin/pip install build twine
+    - ./venv/bin/twine upload dist/*
   tags:
     - debian
   only:
