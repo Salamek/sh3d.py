@@ -2,6 +2,4 @@ javaobj-py3==0.4.4
 packaging==24.2
 pillow==11.2.1
 shapely==2.1.0
-skia-python==87.8
-svg.py==1.6.0
 xmltodict==0.14.2

@@ -24,10 +24,8 @@ dependencies = [
     "packaging",
     "xmltodict",
     "javaobj-py3",
-    "svg.py",
     "pillow",
-    "shapely",
-    "skia-python"
+    "shapely"
 ]
 
 [project.optional-dependencies]
