@@ -11,7 +11,7 @@ _level_cache = weakref.WeakValueDictionary()
 @dataclasses.dataclass(unsafe_hash=True)
 class Level(ModelBase):
     identifier: str
-    name: Optional[str]
+    name: str
     elevation: float
     floor_thickness: float
     height: float
@@ -60,7 +60,7 @@ class Level(ModelBase):
 
         level = cls(
             identifier=identifier,
-            name=data.get('@name'),
+            name=cls.required_str(data.get('@name')),
             elevation=cls.required_float(data.get('@elevation')),
             floor_thickness=cls.required_float(data.get('@floorThickness')),
             height=cls.required_float(data.get('@height')),
