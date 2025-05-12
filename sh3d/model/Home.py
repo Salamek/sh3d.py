@@ -117,6 +117,10 @@ class Home(ModelBase):
         if not isinstance(piece_of_furniture, list):
             piece_of_furniture = [piece_of_furniture]
 
+        polyline = data.get('polyline', [])
+        if not isinstance(polyline, list):
+            polyline = [polyline]
+
         furniture = [HomeDoorOrWindow.from_xml_dict(dow, asset_manager) for dow in door_or_window]
         furniture += [HomePieceOfFurniture.from_xml_dict(hpofo, asset_manager) for hpofo in piece_of_furniture]
 
@@ -142,7 +146,7 @@ class Home(ModelBase):
             rooms=[Room.from_xml_dict(ro, asset_manager) for ro in data.get('room')],
             walls=[w[0] for w in walls],
             dimension_lines=[DimensionLine.from_xml_dict(dl, asset_manager) for dl in dimension_line],
-            polylines=[Polyline.from_xml_dict(po, asset_manager) for po in data.get('polyline')],
+            polylines=[Polyline.from_xml_dict(po, asset_manager) for po in polyline],
             wall_height=cls.required_float(data.get('@wallHeight')),
             name=cls.required_str(data.get('@name')),
             background_image=BackgroundImage.from_xml_dict(data.get('backgroundImage'), asset_manager) if background_image else None,
