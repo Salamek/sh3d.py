@@ -86,8 +86,9 @@ class AssetManager:
         return self._assets.get(asset_name)
 
     def get_asset_by_uri(self, uri: str) -> Optional[Content]:
-        _, asset_name = uri.split('/')
-        return self._assets.get(asset_name)
+        if 'file:temp!/' in uri:
+            uri = uri.replace('file:temp!/', '')
+        return self._assets.get(uri)
 
     def get_texture(self, texture_name: str) -> Content:
         found = self._textures.get(texture_name)
