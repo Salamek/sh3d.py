@@ -96,7 +96,7 @@ class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
 
         if self.level and level:
             piece_level_elevation = self.level.elevation
-            level_elevation = self.elevation
+            level_elevation = level.elevation
             if piece_level_elevation == level_elevation and self.level.elevation_index < level.elevation_index:
                 return True
 
