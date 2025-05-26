@@ -27,27 +27,40 @@ class Sash(Renderable):
 
     @cached_property
     def geometry(self) -> Union[LineString, Polygon]:
-        model_mirrored_sign = 1.0 if self.door_or_window.is_model_mirrored else -1.0
+        model_mirrored_sign = -1 if self.door_or_window.is_model_mirrored else 1
+
+        # Compute arc positioning and size
         x_axis = model_mirrored_sign * self.x_axis * self.door_or_window.width
         y_axis = self.y_axis * self.door_or_window.depth
         sash_width = self.width * self.door_or_window.width
-        start_angle = math.degrees(self.start_angle)
-        if self.door_or_window.is_model_mirrored:
-            start_angle = 180 - start_angle
 
-        extent_angle = model_mirrored_sign * math.degrees(self.end_angle - self.start_angle)
-        sash_arc = arc(x_axis - sash_width, y_axis - sash_width, 2 * sash_width, 2 * sash_width, start_angle, extent_angle, ArcTypeEnum.PIE)
-        arc_translated = translate(
-            sash_arc,
-            xoff=self.door_or_window.x - (model_mirrored_sign * -(self.door_or_window.width / 2)) - x_axis,
-            yoff=self.door_or_window.y - (self.door_or_window.depth / 2)
+        # Convert start angle to degrees
+        start_angle_deg = math.degrees(self.start_angle)
+
+        if self.door_or_window.is_model_mirrored:
+            start_angle_deg = 180 - start_angle_deg
+
+        # Compute extent angle
+        extent_angle_deg = model_mirrored_sign * math.degrees(
+            self.end_angle - self.start_angle
         )
-        return rotate(
-            arc_translated,
-            angle=self.door_or_window.angle,
-            origin=(self.door_or_window.x, self.door_or_window.y),
-            use_radians=True
+
+        # Create arc shape (as Polygon for PIE)
+        arc_shape = arc(
+            x=x_axis - sash_width,
+            y=y_axis - sash_width,
+            width=2 * sash_width,
+            height=2 * sash_width,
+            start_angle_deg=start_angle_deg,
+            arc_angle_deg=extent_angle_deg,
+            arc_type=ArcTypeEnum.PIE
         )
+
+        # Apply transformation: translate to (x, y), rotate, then align center
+        shape = translate(arc_shape, xoff=model_mirrored_sign * -self.door_or_window.width / 2,
+                          yoff=-self.door_or_window.depth / 2)
+        shape = rotate(shape, angle=self.door_or_window.angle, origin=(0, 0), use_radians=True)
+        return translate(shape, xoff=self.door_or_window.x, yoff=self.door_or_window.y)
 
     @property
     def points(self) -> List[PointType]:

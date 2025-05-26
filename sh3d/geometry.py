@@ -36,7 +36,7 @@ def arc(
     points = [
         (
             cx + rx * math.cos(start_rad + i * angle_step),
-            cy + ry * math.sin(start_rad + i * angle_step)
+            cy - ry * math.sin(start_rad + i * angle_step)
         )
         for i in range(num_points + 1)
     ]
