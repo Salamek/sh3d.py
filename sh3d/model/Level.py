@@ -42,10 +42,10 @@ class Level(ModelBase):
 
     @classmethod
     def from_identifier(cls, identifier: str, build_context: BuildContext) -> 'Level':
-        wall = build_context.level_cache.get(identifier)
-        if not wall:
+        level = build_context.level_cache.get(identifier)
+        if not level:
             raise ValueError('Identifier not found in cache')
-        return wall
+        return level
 
     @classmethod
     def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'Level':
