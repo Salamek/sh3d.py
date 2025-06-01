@@ -3,7 +3,7 @@ from typing import Optional
 from javaobj import JavaObject
 from .HomeTexture import HomeTexture
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
 
 
 @dataclasses.dataclass
@@ -28,13 +28,13 @@ class HomeEnvironment(ModelBase):
     video_frame_rate: int
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'HomeEnvironment':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'HomeEnvironment':
         return cls(
             observer_camera_elevation_adjusted=o.observerCameraElevationAdjusted,
             ground_color=o.groundColor,
-            ground_texture=HomeTexture.from_javaobj(o.groundTexture, asset_manager) if o.groundTexture else None,
+            ground_texture=HomeTexture.from_javaobj(o.groundTexture, build_context) if o.groundTexture else None,
             sky_color=o.skyColor,
-            sky_texture=HomeTexture.from_javaobj(o.skyTexture, asset_manager) if o.skyTexture else None,
+            sky_texture=HomeTexture.from_javaobj(o.skyTexture, build_context) if o.skyTexture else None,
             light_color=o.lightColor,
             ceiling_light_color=o.ceilingLightColor,
             walls_alpha=o.wallsAlpha,
@@ -51,16 +51,16 @@ class HomeEnvironment(ModelBase):
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'HomeEnvironment':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'HomeEnvironment':
         ground_texture = data.get('@groundTexture')
         sky_texture = data.get('@skyTexture')
 
         return cls(
             observer_camera_elevation_adjusted=False,
             ground_color=data.get('@groundColor'),
-            ground_texture=HomeTexture.from_xml_dict(ground_texture, asset_manager) if ground_texture else None,
+            ground_texture=HomeTexture.from_xml_dict(ground_texture, build_context) if ground_texture else None,
             sky_color=data.get('@skyColor'),
-            sky_texture=HomeTexture.from_xml_dict(sky_texture, asset_manager) if sky_texture else None,
+            sky_texture=HomeTexture.from_xml_dict(sky_texture, build_context) if sky_texture else None,
             light_color=data.get('@lightColor'),
             ceiling_light_color=data.get('@ceillingLightColor'),
             walls_alpha=0.0,

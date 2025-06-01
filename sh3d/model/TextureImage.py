@@ -1,21 +1,22 @@
 import io
 import weakref
 import dataclasses
-from typing import Any
+from typing import Any, ClassVar
 from PIL import Image
 from javaobj import JavaObject
 from .Content import Content
-from ..AssetManager import AssetManager
 from .ModelBase import ModelBase
+from ..BuildContext import BuildContext
 
 
 @dataclasses.dataclass(frozen=True)
 class TextureImage(ModelBase):
-    _instances = weakref.WeakValueDictionary()
     name: str
     image: Content
     width: float
     height: float
+    _instances: ClassVar[weakref.WeakValueDictionary[str, 'TextureImage']] = weakref.WeakValueDictionary()
+
 
     def __new__(cls, name: str, *_args: Any, **_kwargs: Any) -> 'TextureImage':
         if name in cls._instances:
@@ -35,8 +36,8 @@ class TextureImage(ModelBase):
         )
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'TextureImage':
-        image = asset_manager.get_pattern(o.name)
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'TextureImage':
+        image = build_context.asset_manager.get_pattern(o.name)
         image_info = Image.open(io.BytesIO(image.data))
 
         return cls(
@@ -47,12 +48,12 @@ class TextureImage(ModelBase):
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'ModelBase':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'ModelBase':
         raise NotImplementedError
 
     @classmethod
-    def from_str(cls, pattern_name: str, asset_manager: AssetManager) -> 'TextureImage':
-        image = asset_manager.get_pattern(pattern_name)
+    def from_str(cls, pattern_name: str, build_context: BuildContext) -> 'TextureImage':
+        image = build_context.asset_manager.get_pattern(pattern_name)
         image_info = Image.open(io.BytesIO(image.data))
         return cls(
             name=pattern_name,

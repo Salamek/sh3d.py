@@ -12,7 +12,7 @@ from .Renderable import Renderable
 from .TextStyle import TextStyle, Alignment
 from .Level import Level
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
 
 DIMENSION_LINE_MARK_END = (
     'M -5 5',
@@ -43,7 +43,7 @@ class DimensionLine(ModelBase, Renderable, HasLevel):
     level: Optional[Level] = None
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'DimensionLine':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'DimensionLine':
         return cls(
             identifier=o.id,
             x_start=o.xStart,
@@ -57,12 +57,15 @@ class DimensionLine(ModelBase, Renderable, HasLevel):
             pitch=o.pitch,
             color=Color.from_argb_interger(int(o.color)) if o.color else Color.from_rgba(0,0,0,255),
             is_visible_in_3d=o.visibleIn3D,
-            length_style=TextStyle.from_javaobj(o.lengthStyle, asset_manager) if o.lengthStyle else DEFAULT_TEXT_STYLE,
-            level=Level.from_javaobj(o.level, asset_manager) if o.level else None
+            length_style=TextStyle.from_javaobj(o.lengthStyle, build_context) if o.lengthStyle else DEFAULT_TEXT_STYLE,
+            level=Level.from_javaobj(o.level, build_context) if o.level else None
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'DimensionLine':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'DimensionLine':
+        identifier = data.get('@id')
+        if not identifier:
+            raise ValueError('id was not provided')
         text_style = data.get('textStyle')
         level_identifier = data.get('@level')
         elevation_end = data.get('@elevationEnd', '0.0')
@@ -70,7 +73,7 @@ class DimensionLine(ModelBase, Renderable, HasLevel):
 
         color = data.get('@color')
         return cls(
-            identifier=data.get('@id'),
+            identifier=identifier,
             x_start=cls.required_float(data.get('@xStart')),
             y_start=cls.required_float(data.get('@yStart')),
             elevation_start=cls.required_float(elevation_start),
@@ -82,8 +85,8 @@ class DimensionLine(ModelBase, Renderable, HasLevel):
             pitch=cls.required_float(data.get('@pitch', '0.0')),
             color=Color.from_hexa(color) if color else Color.from_rgba(0,0,0,255),
             is_visible_in_3d=data.get('@visibleIn3D', 'false') == 'true',
-            length_style=TextStyle.from_xml_dict(text_style, asset_manager) if text_style else DEFAULT_TEXT_STYLE,
-            level=Level.from_identifier(level_identifier) if level_identifier else None
+            length_style=TextStyle.from_xml_dict(text_style, build_context) if text_style else DEFAULT_TEXT_STYLE,
+            level=Level.from_identifier(level_identifier, build_context) if level_identifier else None
         )
 
 

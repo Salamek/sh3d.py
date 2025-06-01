@@ -3,7 +3,8 @@ import enum
 
 from javaobj import JavaObject
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
+
 
 @enum.unique
 class Alignment(enum.Enum):
@@ -19,7 +20,7 @@ class TextStyle(ModelBase):
     alignment: Alignment
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'TextStyle':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'TextStyle':
         return cls(
             font_size=o.fontSize,
             bold=o.bold,
@@ -28,7 +29,7 @@ class TextStyle(ModelBase):
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'ModelBase':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'TextStyle':
         return cls(
             font_size=cls.required_float(data.get('@fontSize')),
             bold=False,

@@ -3,7 +3,7 @@ from typing import Optional
 from zoneinfo import ZoneInfo
 from javaobj import JavaObject
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
 
 
 @dataclasses.dataclass
@@ -18,7 +18,7 @@ class Compass(ModelBase):
     time_zone: Optional[ZoneInfo]
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'Compass':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'Compass':
         return cls(
             x=o.x,
             y=o.y,
@@ -31,7 +31,7 @@ class Compass(ModelBase):
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'Compass':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'Compass':
         time_zone = data.get('@timeZone')
         if not time_zone:
             raise ValueError('TimeZone is required')

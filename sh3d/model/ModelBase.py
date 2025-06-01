@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 from javaobj import JavaObject
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
 
 
 class ModelBase(ABC):
@@ -26,10 +26,10 @@ class ModelBase(ABC):
 
     @classmethod
     @abstractmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'ModelBase':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'ModelBase':
         raise NotImplementedError
 
     @classmethod
     @abstractmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'ModelBase':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'ModelBase':
         raise NotImplementedError

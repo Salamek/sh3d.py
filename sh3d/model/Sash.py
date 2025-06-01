@@ -7,10 +7,10 @@ from shapely.geometry.linestring import LineString
 from shapely.geometry.polygon import Polygon
 from shapely.affinity import rotate, translate
 
-from sh3d.AssetManager import AssetManager
 from sh3d.geometry import arc, ArcTypeEnum
 from .Renderable import Renderable, PointType
 from .ModelBase import ModelBase
+from ..BuildContext import BuildContext
 
 if TYPE_CHECKING:
     from .HomeDoorOrWindow import HomeDoorOrWindow
@@ -71,7 +71,7 @@ class Sash(Renderable):
         raise NotImplementedError
 
     @classmethod
-    def from_javaobj(cls, door_or_window: 'HomeDoorOrWindow', o: JavaObject, _asset_manager: AssetManager) -> 'Sash':
+    def from_javaobj(cls, door_or_window: 'HomeDoorOrWindow', o: JavaObject, _build_context: BuildContext) -> 'Sash':
         return cls(
             door_or_window=door_or_window,
             x_axis=o.xAxis,
@@ -82,7 +82,7 @@ class Sash(Renderable):
         )
 
     @classmethod
-    def from_xml_dict(cls, door_or_window: 'HomeDoorOrWindow', data: dict, _asset_manager: AssetManager) -> 'Sash':
+    def from_xml_dict(cls, door_or_window: 'HomeDoorOrWindow', data: dict, _build_context: BuildContext) -> 'Sash':
         return cls(
             door_or_window=door_or_window,
             x_axis=ModelBase.required_float(data.get('@xAxis')),

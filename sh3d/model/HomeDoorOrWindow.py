@@ -7,7 +7,7 @@ from .Level import Level
 from .Sash import Sash
 from .TextStyle import TextStyle
 from .TextureImage import TextureImage
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
 
 DEFAULT_CUT_OUT_SHAPE: str = 'M0,0 v1 h1 v-1 z'
 
@@ -59,7 +59,7 @@ class HomeDoorOrWindow(HomePieceOfFurniture):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'HomeDoorOrWindow':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'HomeDoorOrWindow':
         door_or_window = cls(
             # HomeDoorOrWindow
             sashes=[], # Is set later after class init
@@ -81,23 +81,23 @@ class HomeDoorOrWindow(HomePieceOfFurniture):
             name_visible=o.nameVisible,
             name_x_offset=o.nameXOffset,
             name_y_offset=o.nameYOffset,
-            name_style=TextStyle.from_javaobj(o.nameStyle, asset_manager) if o.nameStyle else None,
+            name_style=TextStyle.from_javaobj(o.nameStyle, build_context) if o.nameStyle else None,
             name_angle=o.nameAngle,
             description=o.description,
             height_in_plan=o.heightInPlan,
-            icon=TextureImage.from_content(asset_manager.get_asset_by_uri(o.icon.url.file)) if o.icon else None,
-            plan_icon=TextureImage.from_content(asset_manager.get_asset_by_uri(o.planIcon.url.file)) if o.planIcon else None,
-            model=asset_manager.get_asset_by_uri(o.model.url.file) if o.model else None,
+            icon=TextureImage.from_content(build_context.asset_manager.get_asset_by_uri(o.icon.url.file)) if o.icon else None,
+            plan_icon=TextureImage.from_content(build_context.asset_manager.get_asset_by_uri(o.planIcon.url.file)) if o.planIcon else None,
+            model=build_context.asset_manager.get_asset_by_uri(o.model.url.file) if o.model else None,
             width=o.width,
             depth=o.depth,
             height=o.height,
             elevation=o.elevation,
             movable=o.movable,
             is_door_or_window=o.doorOrWindow,
-            model_materials=[HomeMaterial.from_javaobj(hmo, asset_manager) for hmo in
+            model_materials=[HomeMaterial.from_javaobj(hmo, build_context) for hmo in
                              o.modelMaterials] if o.modelMaterials else None,
             color=o.color,
-            texture=HomeTexture.from_javaobj(o.texture, asset_manager) if o.texture else None,
+            texture=HomeTexture.from_javaobj(o.texture, build_context) if o.texture else None,
             shininess=o.shininess,
             model_rotation=o.modelRotation,
             staircase_cut_out_shape=o.staircaseCutOutShape,
@@ -113,24 +113,24 @@ class HomeDoorOrWindow(HomePieceOfFurniture):
             y=o.y,
             angle=o.angle,
             is_model_mirrored=o.modelMirrored,
-            level=Level.from_javaobj(o.level, asset_manager) if o.level else None
+            level=Level.from_javaobj(o.level, build_context) if o.level else None
         )
 
-        door_or_window.sashes = [Sash.from_javaobj(door_or_window, sash, asset_manager) for sash in o.sashes]
+        door_or_window.sashes = [Sash.from_javaobj(door_or_window, sash, build_context) for sash in o.sashes]
 
         return door_or_window
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'HomeDoorOrWindow':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'HomeDoorOrWindow':
         icon = data.get('@icon')
-        icon_content = asset_manager.get_asset(icon) if icon else None
+        icon_content = build_context.asset_manager.get_asset(icon) if icon else None
 
         model = data.get('@model')
         level_identifier = data.get('@level')
-        sash = data.get('sash', [])
+        sashes = data.get('sash', [])
 
-        if not isinstance(sash, list):
-            sash = [sash]
+        if not isinstance(sashes, list):
+            sashes = [sashes]
 
         door_or_window = cls(
             # HomeDoorOrWindow
@@ -159,7 +159,7 @@ class HomeDoorOrWindow(HomePieceOfFurniture):
             height_in_plan=cls.required_float(data.get('@heightInPlan', '-infinity')),
             icon=TextureImage.from_content(icon_content) if icon_content else None,
             plan_icon=None,
-            model=asset_manager.get_asset(model) if model else None,
+            model=build_context.asset_manager.get_asset(model) if model else None,
             width=cls.required_float(data.get('@width')),
             depth=cls.required_float(data.get('@depth')),
             height=cls.required_float(data.get('@height')),
@@ -184,9 +184,9 @@ class HomeDoorOrWindow(HomePieceOfFurniture):
             y=cls.required_float(data.get('@y')),
             angle=cls.required_float(data.get('@angle', '0.0')),
             is_model_mirrored=False,
-            level=Level.from_identifier(level_identifier) if level_identifier else None
+            level=Level.from_identifier(level_identifier, build_context) if level_identifier else None
         )
 
-        door_or_window.sashes = [Sash.from_xml_dict(door_or_window, sash, asset_manager) for sash in sash]
+        door_or_window.sashes = [Sash.from_xml_dict(door_or_window, sash, build_context) for sash in sashes]
 
         return door_or_window

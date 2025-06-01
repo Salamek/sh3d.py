@@ -12,7 +12,8 @@ from .HasLevel import HasLevel
 from .Renderable import Renderable, PointType
 from .Level import Level
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
+
 
 @enum.unique
 class CapStyle(enum.Enum):
@@ -82,7 +83,7 @@ class Polyline(ModelBase, Renderable, HasLevel):
     level: Optional[Level] = None
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'Polyline':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'Polyline':
         return cls(
             identifier=o.id,
             points=o.points,
@@ -93,21 +94,24 @@ class Polyline(ModelBase, Renderable, HasLevel):
             join_style_name=o.joinStyleName,
             dash_style=DashStyle(o.dashStyleName) if o.dashStyleName else DashStyle.SOLID,
             dash_style_name=o.dashStyleName,
-            dash_pattern=o.dashPattern if o.dashPattern else DashStyle(o.dashStyleName).dash_pattern if o.dashStyleName else None,
+            dash_pattern=o.dashPattern if o.dashPattern else DashStyle(o.dashStyleName).dash_pattern if o.dashStyleName else DashStyle.SOLID.dash_pattern,
             dash_offset=o.dashOffset,
-            start_arrow_style=ArrowStyle(o.startArrowStyleName) if o.startArrowStyleName else None,
+            start_arrow_style=ArrowStyle(o.startArrowStyleName) if o.startArrowStyleName else ArrowStyle.DELTA,
             start_arrow_style_name=o.startArrowStyleName,
-            end_arrow_style=ArrowStyle(o.endArrowStyleName) if o.endArrowStyleName else None,
+            end_arrow_style=ArrowStyle(o.endArrowStyleName) if o.endArrowStyleName else ArrowStyle.DELTA,
             end_arrow_style_name=o.endArrowStyleName,
             is_closed_path=o.closedPath,
-            color=Color.from_argb_interger(o.color) if o.color else None,
+            color=Color.from_argb_interger(o.color) if o.color else Color.from_rgba(0, 0, 0, 255),
             elevation=o.elevation,
-            level=Level.from_javaobj(o.level, asset_manager) if o.level else None
+            level=Level.from_javaobj(o.level, build_context) if o.level else None
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'Polyline':
-        points = data.get('point')
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'Polyline':
+        identifier = data.get('@id')
+        if not identifier:
+            raise ValueError('id was not provided')
+        points = data.get('point', [])
         cap_style_name = data.get('@capStyle')
         join_style_name = data.get('@joinStyle')
         dash_style_name = data.get('@dashStyle')
@@ -117,7 +121,7 @@ class Polyline(ModelBase, Renderable, HasLevel):
         color = data.get('@color')
         level_identifier = data.get('@level')
         return cls(
-            identifier=data.get('@id'),
+            identifier=identifier,
             points=[[float(point.get('@x')), float(point.get('@y'))] for point in points],
             thickness=cls.required_float(data.get('@thickness')),
             cap_style=CapStyle(cap_style_name) if cap_style_name else CapStyle.BUTT,
@@ -126,16 +130,16 @@ class Polyline(ModelBase, Renderable, HasLevel):
             join_style_name=join_style_name,
             dash_style=DashStyle(dash_style_name) if dash_style_name else DashStyle.SOLID,
             dash_style_name=dash_style_name,
-            dash_pattern=dash_pattern if dash_pattern else DashStyle(dash_style_name).dash_pattern if dash_style_name else None,
+            dash_pattern=dash_pattern if dash_pattern else DashStyle(dash_style_name).dash_pattern if dash_style_name else DashStyle.SOLID.dash_pattern,
             dash_offset=data.get('@dashOffset'),
-            start_arrow_style=ArrowStyle(start_arrow_style_name) if start_arrow_style_name else None,
+            start_arrow_style=ArrowStyle(start_arrow_style_name) if start_arrow_style_name else ArrowStyle.DELTA,
             start_arrow_style_name=start_arrow_style_name,
-            end_arrow_style=ArrowStyle(end_arrow_style_name) if end_arrow_style_name else None,
+            end_arrow_style=ArrowStyle(end_arrow_style_name) if end_arrow_style_name else ArrowStyle.DELTA,
             end_arrow_style_name=end_arrow_style_name,
             is_closed_path=data.get('@closedPath', False),
-            color=Color.from_hexa(color) if color else None,
+            color=Color.from_hexa(color) if color else Color.from_rgba(0, 0, 0, 255),
             elevation=data.get('@elevation'),
-            level=Level.from_identifier(level_identifier) if level_identifier else None
+            level=Level.from_identifier(level_identifier, build_context) if level_identifier else None
         )
 
 

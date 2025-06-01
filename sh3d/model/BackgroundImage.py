@@ -7,7 +7,7 @@ from PIL.ImageFile import ImageFile
 from javaobj import JavaObject
 from .Content import Content
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
 
 
 @dataclasses.dataclass
@@ -37,8 +37,8 @@ class BackgroundImage(ModelBase):
 
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'BackgroundImage':
-        image = asset_manager.get_asset_by_uri(o.image.url.file)
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'BackgroundImage':
+        image = build_context.asset_manager.get_asset_by_uri(o.image.url.file)
         if not image:
             raise ValueError('Image was not found in data')
         return cls(
@@ -54,12 +54,12 @@ class BackgroundImage(ModelBase):
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'BackgroundImage':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'BackgroundImage':
         image = data.get('@image')
         if not image:
             raise ValueError('image is not provided')
 
-        image_content = asset_manager.get_asset(image)
+        image_content = build_context.asset_manager.get_asset(image)
         if not image_content:
             raise ValueError('Content was not found')
 

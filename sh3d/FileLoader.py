@@ -9,6 +9,7 @@ import javaobj
 
 from sh3d.AssetManager import AssetManager
 from sh3d.model.Home import Home
+from sh3d.BuildContext import BuildContext
 
 @enum.unique
 class HomeSource(enum.Enum):
@@ -43,12 +44,13 @@ class FileLoader:
         return self._load_home()
 
     def _load_home(self) -> Home:
+        build_context = BuildContext(self.asset_manager)
         if self.home_source == HomeSource.XML:
             data = xmltodict.parse(self.zip_file.read('Home.xml'))
-            return Home.from_xml_dict(data.get('home'), self.asset_manager)
+            return Home.from_xml_dict(data.get('home'), build_context)
 
         data = javaobj.loads(self.zip_file.read('Home'))
-        return Home.from_javaobj(data, self.asset_manager)
+        return Home.from_javaobj(data, build_context)
 
     def __enter__(self) -> 'FileLoader':
         return self

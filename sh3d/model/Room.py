@@ -10,8 +10,7 @@ from .TextStyle import TextStyle, Alignment
 from .HomeTexture import HomeTexture
 from .Level import Level
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
-
+from ..BuildContext import BuildContext
 
 DEFAULT_ROOM_TEXT_STYLE = TextStyle(
     font_size=24,
@@ -77,35 +76,35 @@ class Room(ModelBase, Renderable, HasLevel):
         return self.level.elevation == level.elevation and self.level.elevation_index < level.elevation_index
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'Room':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'Room':
         return cls(
             identifier=o.id,
             name=o.name.strip() if o.name else None,
             name_x_offset=o.nameXOffset,
             name_y_offset=o.nameYOffset,
-            name_style=TextStyle.from_javaobj(o.nameStyle, asset_manager) if o.nameStyle else DEFAULT_ROOM_TEXT_STYLE,
+            name_style=TextStyle.from_javaobj(o.nameStyle, build_context) if o.nameStyle else DEFAULT_ROOM_TEXT_STYLE,
             name_angle=o.nameAngle,
             points=o.points,
             is_area_visible=o.areaVisible,
             area_x_offset=o.areaXOffset,
             area_y_offset=o.areaYOffset,
-            area_style=TextStyle.from_javaobj(o.areaStyle, asset_manager) if o.areaStyle else DEFAULT_ROOM_TEXT_STYLE,
+            area_style=TextStyle.from_javaobj(o.areaStyle, build_context) if o.areaStyle else DEFAULT_ROOM_TEXT_STYLE,
             area_angle=o.areaAngle,
             floor_visible=o.floorVisible,
             floor_color=o.floorColor,
-            floor_texture=HomeTexture.from_javaobj(o.floorTexture, asset_manager) if o.floorTexture else None,
+            floor_texture=HomeTexture.from_javaobj(o.floorTexture, build_context) if o.floorTexture else None,
             floor_shininess=o.floorShininess,
             ceiling_visible=o.ceilingVisible,
             ceiling_color=o.ceilingColor,
-            ceiling_texture=HomeTexture.from_javaobj(o.ceilingTexture, asset_manager) if o.ceilingTexture else None,
+            ceiling_texture=HomeTexture.from_javaobj(o.ceilingTexture, build_context) if o.ceilingTexture else None,
             ceiling_shininess=o.ceilingShininess,
-            level=Level.from_javaobj(o.level, asset_manager) if o.level else None
+            level=Level.from_javaobj(o.level, build_context) if o.level else None
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'Room':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'Room':
         level_identifier = data.get('@level')
-        points = data.get('point')
+        points = data.get('point', [])
         return cls(
             identifier=cls.required_str(data.get('@id')),
             name=data.get('@name'),
@@ -127,5 +126,5 @@ class Room(ModelBase, Renderable, HasLevel):
             ceiling_color=0,
             ceiling_texture=None,
             ceiling_shininess=0.0,
-            level=Level.from_identifier(level_identifier) if level_identifier else None
+            level=Level.from_identifier(level_identifier, build_context) if level_identifier else None
         )

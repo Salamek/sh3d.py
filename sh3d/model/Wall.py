@@ -1,7 +1,7 @@
 import dataclasses
 import math
 from functools import cached_property
-from typing import Optional, Dict, List
+from typing import Optional, List
 
 from javaobj import JavaObject
 
@@ -13,10 +13,7 @@ from .Level import Level
 from .Renderable import Renderable, PointType, PointTypeEditable
 from .TextureImage import TextureImage
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
-
-_wall_cache: Dict[str, 'Wall'] = {}
-
+from ..BuildContext import BuildContext
 
 
 @dataclasses.dataclass
@@ -399,18 +396,18 @@ class Wall(ModelBase, Renderable, HasLevel):
         return wall_points
 
     @classmethod
-    def from_identifier(cls, identifier: str) -> 'Wall':
-        wall = _wall_cache.get(identifier)
+    def from_identifier(cls, identifier: str, build_context: BuildContext) -> 'Wall':
+        wall = build_context.wall_cache.get(identifier)
         if not wall:
             raise ValueError('Identifier not found in cache')
         return wall
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'Wall':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'Wall':
         wall_identifier = o.id
 
-        if wall_identifier in _wall_cache:
-            return _wall_cache[wall_identifier]
+        if wall_identifier in build_context.wall_cache:
+            return build_context.wall_cache[wall_identifier]
 
         # First pass: create partially initialized object
         wall = cls(
@@ -427,7 +424,7 @@ class Wall(ModelBase, Renderable, HasLevel):
         arc_extent = getattr(o, 'arcExtent', None)
         level = getattr(o, 'level', None)
 
-        _wall_cache[wall_identifier] = wall
+        build_context.wall_cache[wall_identifier] = wall
         # Second pass: populate fields
         wall.arc_extent = arc_extent.value if arc_extent else None
         wall.height = height.value if height else None
@@ -440,28 +437,28 @@ class Wall(ModelBase, Renderable, HasLevel):
         wall.right_side_texture = getattr(o, 'rightSideTexture', None)
         wall.right_side_shininess = getattr(o, 'rightSideShininess', 0.0)
         wall.right_side_baseboard = getattr(o, 'rightSideBaseboard', None)
-        wall.pattern = TextureImage.from_javaobj(pattern, asset_manager) if pattern else None
+        wall.pattern = TextureImage.from_javaobj(pattern, build_context) if pattern else None
         wall.top_color = getattr(o, 'topColor', None)
         wall.symmetric = getattr(o, 'symmetric', True)
 
         wall_at_start = getattr(o, 'wallAtStart', None)
         wall_at_end = getattr(o, 'wallAtEnd', None)
 
-        wall.wall_at_start = cls.from_javaobj(wall_at_start, asset_manager) if wall_at_start else None
-        wall.wall_at_end = cls.from_javaobj(wall_at_end, asset_manager) if wall_at_end else None
+        wall.wall_at_start = cls.from_javaobj(wall_at_start, build_context) if wall_at_start else None
+        wall.wall_at_end = cls.from_javaobj(wall_at_end, build_context) if wall_at_end else None
 
-        wall.level = Level.from_javaobj(level, asset_manager) if level else None
+        wall.level = Level.from_javaobj(level, build_context) if level else None
 
         return wall
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'Wall':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'Wall':
         pattern = data.get('@pattern')
         level_identifier = data.get('@level')
         wall_identifier = cls.required_str(data.get('@id'))
 
-        if wall_identifier in _wall_cache:
-            return _wall_cache[wall_identifier]
+        if wall_identifier in build_context.wall_cache:
+            return build_context.wall_cache[wall_identifier]
 
         # First pass: create partially initialized object
         wall = cls(
@@ -473,17 +470,17 @@ class Wall(ModelBase, Renderable, HasLevel):
             thickness=float(data.get('@thickness', '0.0'))
         )
 
-        _wall_cache[wall_identifier] = wall
+        build_context.wall_cache[wall_identifier] = wall
 
         # Second pass: populate fields
         wall.height = cls.required_float(data.get('@height'))
-        wall.pattern = TextureImage.from_str(pattern, asset_manager) if pattern else None
+        wall.pattern = TextureImage.from_str(pattern, build_context) if pattern else None
 
         wall_at_start = data.get('@wallAtStart')
         wall_at_end = data.get('@wallAtEnd')
-        wall.wall_at_start = _wall_cache.get(wall_at_start) if wall_at_start else None
-        wall.wall_at_end = _wall_cache.get(wall_at_end) if wall_at_end else None
+        wall.wall_at_start = build_context.wall_cache.get(wall_at_start) if wall_at_start else None
+        wall.wall_at_end = build_context.wall_cache.get(wall_at_end) if wall_at_end else None
 
-        wall.level = Level.from_identifier(level_identifier) if level_identifier else None
+        wall.level = Level.from_identifier(level_identifier, build_context) if level_identifier else None
 
         return wall

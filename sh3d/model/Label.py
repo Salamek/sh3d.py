@@ -10,7 +10,7 @@ from .Renderable import Renderable
 from .TextStyle import TextStyle, Alignment
 from .Level import Level
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
 
 DEFAULT_TEXT_STYLE = TextStyle(
     font_size=18.0,
@@ -36,23 +36,31 @@ class Label(ModelBase, Renderable, HasLevel):
     level: Optional[Level] = None
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'Label':
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'Label':
         return cls(
             identifier=o.id,
             text=o.text,
             x=o.x,
             y=o.y,
-            style=TextStyle.from_javaobj(o.style, asset_manager) if o.style else DEFAULT_TEXT_STYLE,
+            style=TextStyle.from_javaobj(o.style, build_context) if o.style else DEFAULT_TEXT_STYLE,
             color=Color.from_argb_interger(o.color) if o.color else Color.from_rgba(0, 0, 0, 255),
             outline_color=Color.from_argb_interger(o.outlineColor) if o.outlineColor else None,
             angle=o.angle,
             pitch=o.pitch,
             elevation=o.elevation,
-            level=Level.from_javaobj(o.level, asset_manager) if o.level else None,
+            level=Level.from_javaobj(o.level, build_context) if o.level else None,
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'Label':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'Label':
+        identifier = data.get('@id')
+        if not identifier:
+            raise ValueError('id is not provided')
+
+        text = data.get('text')
+        if not text:
+            raise ValueError('text is not provided')
+
         text_style = data.get('textStyle')
         color = data.get('@color')
         outline_color = data.get('@outlineColor')
@@ -60,17 +68,17 @@ class Label(ModelBase, Renderable, HasLevel):
         pitch = data.get('@pitch')
 
         return cls(
-            identifier=data.get('@id'),
-            text=data.get('text'),
-            x=float(data.get('@x')),
-            y=float(data.get('@y')),
-            style=TextStyle.from_xml_dict(text_style, asset_manager) if text_style else DEFAULT_TEXT_STYLE,
+            identifier=identifier,
+            text=text,
+            x=cls.required_float(data.get('@x')),
+            y=cls.required_float(data.get('@y')),
+            style=TextStyle.from_xml_dict(text_style, build_context) if text_style else DEFAULT_TEXT_STYLE,
             color=Color.from_hexa(color) if color else Color.from_rgba(0, 0, 0, 255),
             outline_color=Color.from_hexa(outline_color) if outline_color else None,
             angle=float(data.get('@angle', '0.0')),
             pitch=float(pitch) if pitch else None,
             elevation=float(data.get('@elevation', '0.0')),
-            level=Level.from_identifier(level_identifier) if level_identifier else None,
+            level=Level.from_identifier(level_identifier, build_context) if level_identifier else None,
         )
 
     def is_at_level(self, level: Level) -> bool:

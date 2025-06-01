@@ -16,7 +16,8 @@ from .HomeMaterial import HomeMaterial
 from .HomeTexture import HomeTexture
 from .ModelBase import ModelBase
 from .TextureImage import TextureImage
-from ..AssetManager import AssetManager
+from ..BuildContext import BuildContext
+
 
 @dataclasses.dataclass
 class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
@@ -73,7 +74,7 @@ class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
             (svg_x, svg_y + height)  # bottom-left
         ]
 
-        def rotate(px, py):
+        def rotate(px: float, py: float) -> Tuple[float, float]:
             dx = px - self.x
             dy = py - self.y
             cos_a = math.cos(self.angle)
@@ -116,9 +117,9 @@ class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
 
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'HomePieceOfFurniture':
-        icon_content = asset_manager.get_asset_by_uri(o.icon.url.file) if o.icon else None
-        plan_icon_content = asset_manager.get_asset_by_uri(o.planIcon.url.file) if o.planIcon else None
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'HomePieceOfFurniture':
+        icon_content = build_context.asset_manager.get_asset_by_uri(o.icon.url.file) if o.icon else None
+        plan_icon_content = build_context.asset_manager.get_asset_by_uri(o.planIcon.url.file) if o.planIcon else None
 
         return cls(
             identifier=o.id,
@@ -127,22 +128,22 @@ class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
             name_visible=o.nameVisible,
             name_x_offset=o.nameXOffset,
             name_y_offset=o.nameYOffset,
-            name_style=TextStyle.from_javaobj(o.nameStyle, asset_manager) if o.nameStyle else None,
+            name_style=TextStyle.from_javaobj(o.nameStyle, build_context) if o.nameStyle else None,
             name_angle=o.nameAngle,
             description=o.description,
             height_in_plan=o.heightInPlan,
             icon=TextureImage.from_content(icon_content) if icon_content else None,
             plan_icon=TextureImage.from_content(plan_icon_content) if plan_icon_content else None,
-            model=asset_manager.get_asset_by_uri(o.model.url.file) if o.model else None,
+            model=build_context.asset_manager.get_asset_by_uri(o.model.url.file) if o.model else None,
             width=o.width,
             depth=o.depth,
             height=o.height,
             elevation=o.elevation,
             movable=o.movable,
             is_door_or_window=o.doorOrWindow,
-            model_materials=[HomeMaterial.from_javaobj(hmo, asset_manager) for hmo in o.modelMaterials] if o.modelMaterials else None,
+            model_materials=[HomeMaterial.from_javaobj(hmo, build_context) for hmo in o.modelMaterials] if o.modelMaterials else None,
             color=Color.from_argb_interger(o.color) if o.color else None,
-            texture=HomeTexture.from_javaobj(o.texture, asset_manager) if o.texture else None,
+            texture=HomeTexture.from_javaobj(o.texture, build_context) if o.texture else None,
             shininess=o.shininess,
             model_rotation=o.modelRotation,
             staircase_cut_out_shape=o.staircaseCutOutShape,
@@ -158,14 +159,16 @@ class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
             y=o.y,
             angle=o.angle,
             is_model_mirrored=o.modelMirrored,
-            level=Level.from_javaobj(o.level, asset_manager) if o.level else None
+            level=Level.from_javaobj(o.level, build_context) if o.level else None
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'HomePieceOfFurniture':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'HomePieceOfFurniture':
         icon = data.get('@icon')
         model = data.get('@model')
         level_identifier = data.get('@level')
+
+        found_icon_asset = build_context.asset_manager.get_asset(icon) if icon else None
 
         return cls(
             identifier=cls.required_str(data.get('@id')),
@@ -178,9 +181,9 @@ class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
             name_angle=0.0,
             description=None,
             height_in_plan=cls.required_float(data.get('@heightInPlan', '-infinity')),
-            icon=TextureImage.from_content(asset_manager.get_asset(icon)) if icon else None,
+            icon=TextureImage.from_content(found_icon_asset) if found_icon_asset else None,
             plan_icon=None,
-            model=asset_manager.get_asset(model) if model else None,
+            model=build_context.asset_manager.get_asset(model) if model else None,
             width=cls.required_float(data.get('@width')),
             depth=cls.required_float(data.get('@depth')),
             height=cls.required_float(data.get('@height')),
@@ -205,5 +208,5 @@ class HomePieceOfFurniture(ModelBase, Renderable, HasLevel):
             y=cls.required_float(data.get('@y')),
             angle=cls.required_float(data.get('@angle', '0.0')),
             is_model_mirrored=False,
-            level=Level.from_identifier(level_identifier) if level_identifier else None
+            level=Level.from_identifier(level_identifier, build_context) if level_identifier else None
         )

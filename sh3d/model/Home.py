@@ -17,8 +17,7 @@ from .Label import Label
 from .HomeEnvironment import HomeEnvironment
 from .Compass import Compass
 from .ModelBase import ModelBase
-from ..AssetManager import AssetManager
-
+from ..BuildContext import BuildContext
 
 L = TypeVar('L', bound=HasLevel)
 
@@ -54,44 +53,48 @@ class Home(ModelBase):
         return viewable_items
 
     @classmethod
-    def from_javaobj(cls, o: JavaObject, asset_manager: AssetManager) -> 'Home':
-        walls = [Wall.from_javaobj(wo, asset_manager) for wo in o.walls]
+    def from_javaobj(cls, o: JavaObject, build_context: BuildContext) -> 'Home':
+        walls = [Wall.from_javaobj(wo, build_context) for wo in o.walls]
         if hasattr(o, 'furnitureWithDoorsAndWindows'):
             furniture_obj = o.furnitureWithDoorsAndWindows
         else:
             furniture_obj = o.furniture
 
-        furniture = []
+        furniture: List[HomePieceOfFurniture] = []
         for hpofo in furniture_obj:
             if hpofo.classdesc.name == 'com.eteks.sweethome3d.model.HomeDoorOrWindow':
-                furniture.append(HomeDoorOrWindow.from_javaobj(hpofo, asset_manager))
+                furniture.append(HomeDoorOrWindow.from_javaobj(hpofo, build_context))
             else:
-                furniture.append(HomePieceOfFurniture.from_javaobj(hpofo, asset_manager))
+                furniture.append(HomePieceOfFurniture.from_javaobj(hpofo, build_context))
 
         return cls(
-            levels=[Level.from_javaobj(lo, asset_manager) for lo in o.levels],
+            levels=[Level.from_javaobj(lo, build_context) for lo in o.levels],
             furniture=furniture,
-            rooms=[Room.from_javaobj(ro, asset_manager) for ro in o.rooms],
+            rooms=[Room.from_javaobj(ro, build_context) for ro in o.rooms],
             walls=walls,
-            dimension_lines=[DimensionLine.from_javaobj(dlo, asset_manager) for dlo in o.dimensionLines],
-            polylines=[Polyline.from_javaobj(po, asset_manager) for po in o.polylines],
-            labels=[Label.from_javaobj(lo, asset_manager) for lo in o.labels],
+            dimension_lines=[DimensionLine.from_javaobj(dlo, build_context) for dlo in o.dimensionLines],
+            polylines=[Polyline.from_javaobj(po, build_context) for po in o.polylines],
+            labels=[Label.from_javaobj(lo, build_context) for lo in o.labels],
             wall_height=o.wallHeight,
             name=o.name,
-            background_image=BackgroundImage.from_javaobj(o.backgroundImage, asset_manager) if o.backgroundImage else None,
-            environment=HomeEnvironment.from_javaobj(o.environment, asset_manager),
-            compass=Compass.from_javaobj(o.compass, asset_manager),
+            background_image=BackgroundImage.from_javaobj(o.backgroundImage, build_context) if o.backgroundImage else None,
+            environment=HomeEnvironment.from_javaobj(o.environment, build_context),
+            compass=Compass.from_javaobj(o.compass, build_context),
             version=o.version
         )
 
     @classmethod
-    def from_xml_dict(cls, data: dict, asset_manager: AssetManager) -> 'Home':
+    def from_xml_dict(cls, data: dict, build_context: BuildContext) -> 'Home':
         background_image = data.get('backgroundImage')
         dimension_line = data.get('dimensionLine', [])
         compass = data.get('compass')
+        environment = data.get('environment')
 
         if not compass:
             raise ValueError('compass is not provided')
+
+        if not environment:
+            raise ValueError('environment is not provided')
 
         if not isinstance(dimension_line, list):
             dimension_line = [dimension_line]
@@ -108,7 +111,7 @@ class Home(ModelBase):
             level = [level]
 
         # Levels needs to be processed first to fill in cache
-        levels = [Level.from_xml_dict(le, asset_manager) for le in level]
+        levels = [Level.from_xml_dict(le, build_context) for le in level]
 
         door_or_window = data.get('doorOrWindow',[])
         if not isinstance(door_or_window, list):
@@ -121,36 +124,40 @@ class Home(ModelBase):
         if not isinstance(polyline, list):
             polyline = [polyline]
 
-        furniture = [HomeDoorOrWindow.from_xml_dict(dow, asset_manager) for dow in door_or_window]
-        furniture += [HomePieceOfFurniture.from_xml_dict(hpofo, asset_manager) for hpofo in piece_of_furniture]
+        rooms = data.get('room', [])
+        if not isinstance(rooms, list):
+            rooms = [rooms]
+
+        furniture = [HomePieceOfFurniture.from_xml_dict(hpofo, build_context) for hpofo in piece_of_furniture]
+        furniture += [HomeDoorOrWindow.from_xml_dict(dow, build_context) for dow in door_or_window]
 
         # Stitch together walls
         walls: List[Tuple[Wall, str, str]] = []
         for wo in wall:
             wall_at_start_identifier = wo.get('@wallAtStart')
             wall_at_end_identifier = wo.get('@wallAtEnd')
-            walls.append((Wall.from_xml_dict(wo, asset_manager), wall_at_start_identifier, wall_at_end_identifier))
+            walls.append((Wall.from_xml_dict(wo, build_context), wall_at_start_identifier, wall_at_end_identifier))
 
         # Loop over created walls and set wall_at_start/end correctly
         for wall, wall_at_start_identifier, wall_at_end_identifier in walls:
             if wall_at_start_identifier and not wall.wall_at_start:
-                wall.wall_at_start = Wall.from_identifier(wall_at_start_identifier)
+                wall.wall_at_start = Wall.from_identifier(wall_at_start_identifier, build_context)
 
             if wall_at_end_identifier and not wall.wall_at_end:
-                wall.wall_at_end = Wall.from_identifier(wall_at_end_identifier)
+                wall.wall_at_end = Wall.from_identifier(wall_at_end_identifier, build_context)
 
         return cls(
             levels=levels,
-            labels=[Label.from_xml_dict(lo, asset_manager) for lo in label],
+            labels=[Label.from_xml_dict(lo, build_context) for lo in label],
             furniture=furniture,
-            rooms=[Room.from_xml_dict(ro, asset_manager) for ro in data.get('room')],
+            rooms=[Room.from_xml_dict(ro, build_context) for ro in rooms],
             walls=[w[0] for w in walls],
-            dimension_lines=[DimensionLine.from_xml_dict(dl, asset_manager) for dl in dimension_line],
-            polylines=[Polyline.from_xml_dict(po, asset_manager) for po in polyline],
+            dimension_lines=[DimensionLine.from_xml_dict(dl, build_context) for dl in dimension_line],
+            polylines=[Polyline.from_xml_dict(po, build_context) for po in polyline],
             wall_height=cls.required_float(data.get('@wallHeight')),
             name=cls.required_str(data.get('@name')),
-            background_image=BackgroundImage.from_xml_dict(data.get('backgroundImage'), asset_manager) if background_image else None,
-            environment=HomeEnvironment.from_xml_dict(data.get('environment'), asset_manager),
-            compass=Compass.from_xml_dict(compass, asset_manager),
-            version=cls.required_int(data.get('@version')),
+            background_image=BackgroundImage.from_xml_dict(background_image, build_context) if background_image else None,
+            environment=HomeEnvironment.from_xml_dict(environment, build_context),
+            compass=Compass.from_xml_dict(compass, build_context),
+            version=cls.required_int(data.get('@version'))
         )
