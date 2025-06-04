@@ -253,23 +253,34 @@ class Wall(ModelBase, Renderable, HasLevel):
             x = point1[0]
             y = point1[1]
 
+            abs_alpha1 = abs(alpha1)
+            abs_alpha2 = abs(alpha2)
+
             # First line vertical
-            if math.isinf(alpha1) and not math.isinf(alpha2):
-                x = point1[0]
-                beta2 = point4[1] - alpha2 * point4[0]
-                y = alpha2 * x + beta2
+            if abs_alpha1 > 4000:
+                if abs_alpha2 < 4000:
+                    x = point1[0]
+                    beta2 = point4[1] - alpha2 * point4[0]
+                    y = alpha2 * x + beta2
 
             # Second line vertical
-            elif math.isinf(alpha2) and not math.isinf(alpha1):
-                x = point3[0]
-                beta1 = point2[1] - alpha1 * point2[0]
-                y = alpha1 * x + beta1
+            elif abs_alpha2 > 4000:
+                if abs_alpha1 < 4000:
+                    x = point3[0]
+                    beta1 = point2[1] - alpha1 * point2[0]
+                    y = alpha1 * x + beta1
 
             # Neither vertical
-            elif not math.isinf(alpha1) and not math.isinf(alpha2):
+            else:
                 same_signum = math.copysign(1, alpha1) == math.copysign(1, alpha2)
+
+                try:
+                    res = alpha1 / alpha2 if abs_alpha1 > abs_alpha2 else alpha2 / alpha1
+                except ZeroDivisionError:
+                    res = float('inf') if alpha1 >= alpha2 else -float('inf')
+
                 if (abs(alpha1 - alpha2) > 1E-5 and
-                        (not same_signum or (max(abs(alpha1), abs(alpha2)) / min(abs(alpha1), abs(alpha2))) > 1.004)):
+                        (not same_signum or res > 1.004)):
                     beta1 = point2[1] - alpha1 * point2[0]
                     beta2 = point4[1] - alpha2 * point4[0]
                     x = (beta2 - beta1) / (alpha1 - alpha2)
